@@ -17,7 +17,10 @@ enum Net {
 
     static func screen() async throws -> Data {
         let (d, resp) = try await URLSession.shared.data(from: base.appendingPathComponent("api/app/screen"))
-        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw NSError(domain: "rasengan", code: 1, userInfo: [NSLocalizedDescriptionKey: "Сервер не отдал экран"]) }
+        let h = resp as? HTTPURLResponse
+        guard h?.statusCode == 200 else {
+            throw NSError(domain: "rasengan", code: 1, userInfo: [NSLocalizedDescriptionKey: "Сервер не отдал экран: код \(h?.statusCode ?? 0), \(h?.url?.path ?? "")"])
+        }
         return d
     }
 }
