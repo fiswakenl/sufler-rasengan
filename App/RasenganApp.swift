@@ -22,6 +22,10 @@ struct Web: UIViewRepresentable {
         cfg.userContentController.add(context.coordinator, name: "rasengan")
         let v = WKWebView(frame: .zero, configuration: cfg)
         v.uiDelegate = context.coordinator
+        v.allowsBackForwardNavigationGestures = true
+        v.scrollView.bounces = false
+        v.backgroundColor = UIColor(red: 0.98, green: 0.976, blue: 0.961, alpha: 1)
+        v.scrollView.backgroundColor = v.backgroundColor
         v.navigationDelegate = context.coordinator
         context.coordinator.web = v
         // кука входа, полученная приложением, нужна и веб-странице
