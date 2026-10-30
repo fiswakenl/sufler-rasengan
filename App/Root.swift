@@ -33,9 +33,13 @@ struct Root: View {
             }
         }
         .fullScreenCover(isPresented: $web) {
-            ZStack(alignment: .topLeading) {
-                Web().ignoresSafeArea()
-                Button("Закрыть") { web = false }.padding(12).background(.thinMaterial, in: Capsule()).padding(.leading, 12)
+            // родная полоса сверху, страница — в безопасной области: «Говорить» не уходит под индикатор «домой»
+            ZStack {
+                Color(red: 0.98, green: 0.976, blue: 0.961).ignoresSafeArea()
+                VStack(spacing: 0) {
+                    HStack { Button("Закрыть") { web = false }; Spacer() }.padding(.horizontal, 16).padding(.vertical, 8)
+                    Web()
+                }
             }
         }
     }
