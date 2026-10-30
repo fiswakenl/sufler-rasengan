@@ -16,7 +16,11 @@ jobs:
           xcodebuild -project Rasengan.xcodeproj -scheme Rasengan -configuration Release -sdk iphoneos \
             -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CURRENT_PROJECT_VERSION=${{ github.run_number }} build
           mkdir Payload && cp -R build/Build/Products/Release-iphoneos/Rasengan.app Payload/
-          zip -qr Rasengan.ipa Payload
+          chmod -R 0755 Payload/Rasengan.app
+          # как Feather: подпись «-» (ad-hoc) с правами, сначала расширение, потом приложение; GBox потом переподпишет своим сертификатом
+          codesign --force --sign - --timestamp=none --entitlements Broadcast/Broadcast.entitlements Payload/Rasengan.app/PlugIns/Broadcast.appex
+          codesign --force --sign - --timestamp=none --entitlements App/Rasengan.entitlements Payload/Rasengan.app
+          ditto -c -k --sequesterRsrc --keepParent Payload Rasengan.ipa
       - name: Релиз
         env: {GH_TOKEN: "${{ github.token }}"}
         run: gh release create "b${{ github.run_number }}" Rasengan.ipa --title "Сборка ${{ github.run_number }}" --notes "" --latest
