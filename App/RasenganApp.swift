@@ -22,7 +22,7 @@ struct Web: UIViewRepresentable {
         cfg.userContentController.add(context.coordinator, name: "rasengan")
         let v = WKWebView(frame: .zero, configuration: cfg)
         v.uiDelegate = context.coordinator
-        v.isOpaque = false
+        v.navigationDelegate = context.coordinator
         context.coordinator.web = v
         let s = Bundle.main.object(forInfoDictionaryKey: "SuflerURL") as? String ?? ""
         if let u = URL(string: s) { v.load(URLRequest(url: u)) }
@@ -32,7 +32,7 @@ struct Web: UIViewRepresentable {
     func updateUIView(_ v: WKWebView, context: Context) {}
 }
 
-final class Bridge: NSObject, WKScriptMessageHandler, WKUIDelegate {
+final class Bridge: NSObject, WKScriptMessageHandler, WKUIDelegate, WKNavigationDelegate {
     weak var web: WKWebView?
     private let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
 
@@ -44,6 +44,14 @@ final class Bridge: NSObject, WKScriptMessageHandler, WKUIDelegate {
         ud?.set(d["token"] as? String, forKey: "token")
         picker.preferredExtension = Bundle.main.bundleIdentifier.map { $0 + ".Broadcast" }
         picker.subviews.compactMap { $0 as? UIButton }.first?.sendActions(for: .allTouchEvents)
+    }
+
+    // Белый экран ничего не объясняет: ошибку загрузки показываем текстом.
+    func webView(_ w: WKWebView, didFailProvisionalNavigation n: WKNavigation!, withError e: Error) { show(w, e) }
+    func webView(_ w: WKWebView, didFail n: WKNavigation!, withError e: Error) { show(w, e) }
+    private func show(_ w: WKWebView, _ e: Error) {
+        let u = Bundle.main.object(forInfoDictionaryKey: "SuflerURL") as? String ?? "(адрес не задан)"
+        w.loadHTMLString("<meta name=viewport content='width=device-width'><body style='font:17px -apple-system;padding:60px 24px'><h3>Не открылось</h3><p>\(u)</p><p style='color:#b04a3a'>\(e.localizedDescription)</p>", baseURL: nil)
     }
 
     // Микрофон странице разрешаем без повторного вопроса.
