@@ -13,6 +13,8 @@ targets:
     type: application
     platform: iOS
     sources: [App]
+    settings:
+      base: {PRODUCT_BUNDLE_IDENTIFIER: dev.sufler.rasengan}
     entitlements:
       path: App/Rasengan.entitlements
       properties:
@@ -32,6 +34,8 @@ targets:
     type: app-extension
     platform: iOS
     sources: [Broadcast]
+    settings:
+      base: {PRODUCT_BUNDLE_IDENTIFIER: dev.sufler.rasengan.Broadcast}
     entitlements:
       path: Broadcast/Broadcast.entitlements
       properties:
