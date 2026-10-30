@@ -1,0 +1,46 @@
+name: Rasengan
+options:
+  bundleIdPrefix: dev.sufler
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+targets:
+  Rasengan:
+    type: application
+    platform: iOS
+    sources: [App]
+    entitlements:
+      path: App/Rasengan.entitlements
+      properties:
+        com.apple.security.application-groups: [group.dev.sufler.rasengan]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Расенган
+        NSMicrophoneUsageDescription: Микрофон нужен для голосового ответа в суфлёре
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        SuflerURL: https://sufler.devml4dbs.duckdns.org/talk
+    dependencies:
+      - target: Broadcast
+        embed: true
+  Broadcast:
+    type: app-extension
+    platform: iOS
+    sources: [Broadcast]
+    entitlements:
+      path: Broadcast/Broadcast.entitlements
+      properties:
+        com.apple.security.application-groups: [group.dev.sufler.rasengan]
+    info:
+      path: Broadcast/Info.plist
+      properties:
+        CFBundleDisplayName: Расенган звук
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.broadcast-services-upload
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
+          RPBroadcastProcessMode: RPBroadcastProcessModeSampleBuffer

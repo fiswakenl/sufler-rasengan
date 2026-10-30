@@ -1,0 +1,22 @@
+name: build
+on:
+  push: {branches: [main]}
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  ipa:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - run: brew install xcodegen
+      - run: xcodegen
+      - name: Сборка без подписи (подпишет GBox)
+        run: |
+          xcodebuild -project Rasengan.xcodeproj -scheme Rasengan -configuration Release -sdk iphoneos \
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CURRENT_PROJECT_VERSION=${{ github.run_number }} build
+          mkdir Payload && cp -R build/Build/Products/Release-iphoneos/Rasengan.app Payload/
+          zip -qr Rasengan.ipa Payload
+      - name: Релиз
+        env: {GH_TOKEN: "${{ github.token }}"}
+        run: gh release create "b${{ github.run_number }}" Rasengan.ipa --title "Сборка ${{ github.run_number }}" --notes "" --latest
