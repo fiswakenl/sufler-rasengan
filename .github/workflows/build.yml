@@ -6,9 +6,10 @@ permissions:
   contents: write
 jobs:
   ipa:
-    runs-on: macos-15
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
+      - run: ls /Applications | grep -i xcode; xcodebuild -version
       - run: brew install xcodegen
       - run: xcodegen
       - name: Сборка без подписи (подпишет GBox)
