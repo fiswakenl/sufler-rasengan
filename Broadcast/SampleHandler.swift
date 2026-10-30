@@ -5,7 +5,6 @@ import CoreMedia
 final class SampleHandler: RPBroadcastSampleHandler {
     private var task: URLSessionWebSocketTask?
     private var pos = 0.0          // дробная позиция ресемплера между буферами
-    private var last: Float = 0    // последний отсчёт предыдущего буфера
 
     override func broadcastStarted(withSetupInfo setupInfo: [String: NSObject]?) {
         let ud = UserDefaults(suiteName: "group.dev.sufler.rasengan")
@@ -34,7 +33,7 @@ final class SampleHandler: RPBroadcastSampleHandler {
               let bb = CMSampleBufferGetDataBuffer(sb) else { return nil }
         var len = 0
         var p: UnsafeMutablePointer<Int8>?
-        guard CMBlockBufferGetDataPointer(bb, atOffset: 0, lengthAtOffset: nil, totalLengthOut: &len, dataPointerOut: &p) == noErr, let base = p else { return nil }
+        guard CMBlockBufferGetDataPointer(bb, atOffset: 0, lengthAtOffsetOut: nil, totalLengthOut: &len, dataPointerOut: &p) == noErr, let base = p else { return nil }
         let ch = Int(a.mChannelsPerFrame), bytes = Int(a.mBitsPerChannel) / 8
         guard ch > 0, bytes == 2 || bytes == 4, !(a.mFormatFlags & kAudioFormatFlagIsNonInterleaved != 0) else { return nil }
         let frames = len / (ch * bytes)
@@ -62,15 +61,12 @@ final class SampleHandler: RPBroadcastSampleHandler {
         var out = Data()
         while pos < Double(frames) {
             let i = Int(pos), f = Float(pos - Double(i))
-            let x0 = i == 0 ? last : mono[i - 1], x1 = mono[min(i, frames - 1)]
-            _ = x0
-            let v = (i + 1 < frames ? mono[i] * (1 - f) + mono[i + 1] * f : x1)
+            let v = i + 1 < frames ? mono[i] * (1 - f) + mono[i + 1] * f : mono[min(i, frames - 1)]
             var s = Int16(max(-1, min(1, v)) * 32767).littleEndian
             withUnsafeBytes(of: &s) { out.append(contentsOf: $0) }
             pos += step
         }
         pos -= Double(frames)
-        last = mono[frames - 1]
         return out
     }
 }
