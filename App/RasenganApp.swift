@@ -7,7 +7,7 @@ let group = "group.dev.sufler.rasengan"
 @main
 struct RasenganApp: App {
     var body: some Scene {
-        WindowGroup { Web().ignoresSafeArea() }
+        WindowGroup { Root() }
     }
 }
 
@@ -24,8 +24,16 @@ struct Web: UIViewRepresentable {
         v.uiDelegate = context.coordinator
         v.navigationDelegate = context.coordinator
         context.coordinator.web = v
+        // кука входа, полученная приложением, нужна и веб-странице
+        let store = cfg.websiteDataStore.httpCookieStore
+        let cookies = HTTPCookieStorage.shared.cookies ?? []
         let s = Bundle.main.object(forInfoDictionaryKey: "SuflerURL") as? String ?? ""
-        if let u = URL(string: s) { v.load(URLRequest(url: u)) }
+        let go = { if let u = URL(string: s) { v.load(URLRequest(url: u)) } }
+        if cookies.isEmpty { go() } else {
+            let g = DispatchGroup()
+            cookies.forEach { g.enter(); store.setCookie($0) { g.leave() } }
+            g.notify(queue: .main, execute: go)
+        }
         return v
     }
 

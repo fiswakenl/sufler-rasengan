@@ -3,6 +3,10 @@ options:
   bundleIdPrefix: dev.sufler
   deploymentTarget:
     iOS: "16.0"
+packages:
+  DivKit:
+    url: https://github.com/divkit/divkit-ios.git
+    from: 33.9.0
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -30,6 +34,8 @@ targets:
     dependencies:
       - target: Broadcast
         embed: true
+      - package: DivKit
+        product: DivKit
   Broadcast:
     type: app-extension
     platform: iOS
