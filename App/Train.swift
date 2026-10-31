@@ -17,7 +17,6 @@ final class Train: ObservableObject {
     private var conv: AVAudioConverter?
     private var pcm = Data()
     private var talking = false          // держат рацию: микрофон считается голосом собеседующего
-    private let group = "group.dev.sufler.rasengan"
     private let picker = RPSystemBroadcastPickerView(frame: CGRect(x: 0, y: 0, width: 44, height: 44))
 
     func start() async {

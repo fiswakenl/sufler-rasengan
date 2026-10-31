@@ -25,15 +25,6 @@ enum Net {
     }
 }
 
-extension Net {
-    // Одноразовый ключ для расширения записи экрана (/ws/phone).
-    static func phoneToken() async throws -> String {
-        let (d, _) = try await URLSession.shared.data(from: base.appendingPathComponent("api/demo/phone"))
-        guard let t = (try JSONSerialization.jsonObject(with: d) as? [String: Any])?["token"] as? String else { throw URLError(.badServerResponse) }
-        return t
-    }
-}
-
 enum Keys {
     static func save(_ v: String, _ k: String) {
         let q: [CFString: Any] = [kSecClass: kSecClassGenericPassword, kSecAttrAccount: k]

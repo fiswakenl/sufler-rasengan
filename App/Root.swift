@@ -8,7 +8,6 @@ private let paper = Color(red: 0.98, green: 0.976, blue: 0.961)     // фон с
 struct Root: View {
     @State private var phase: Phase = .start
     @State private var screen: Data?
-    @State private var web = false
     @State private var train = false
     @StateObject private var tr = Train()
     @AppStorage("iv") private var iv = "phone"   // источник звука, выбирается в меню «…» до старта
@@ -30,16 +29,6 @@ struct Root: View {
         .tint(accent)
         .preferredColorScheme(.light)
         .fullScreenCover(isPresented: $train, onDismiss: { tr.stop() }) { Training(tr: tr, close: { train = false }) }
-        .fullScreenCover(isPresented: $web) {
-            NavigationStack {
-                Web()
-                    .background(paper)
-                    .navigationTitle("Суфлёр")
-                    .navigationBarTitleDisplayMode(.inline)
-                    .toolbar { ToolbarItem(placement: .topBarLeading) { Button("Закрыть") { web = false } } }
-            }
-            .tint(accent)
-        }
     }
 
     private var main: some View {
@@ -49,7 +38,6 @@ struct Root: View {
                     DivHostingView(
                         divkitComponents: DivKitComponents(urlHandler: Actions { act, url in
                             switch act {
-                            case "web": web = true
                             case "train":
                                 tr.iv = iv
                                 train = true; Task { await tr.start() }
