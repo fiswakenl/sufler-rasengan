@@ -140,7 +140,7 @@ struct Training: View {
                         divkitComponents: DivKitComponents(urlHandler: Actions { act in
                             if act.hasPrefix("act:") { tr.act(String(act.dropFirst(4))) }
                         }),
-                        source: DivViewSource(kind: .data(d), cardId: "train\(tr.rev)")
+                        source: DivViewSource(kind: .data(d), cardId: DivCardID(rawValue: "train\(tr.rev)"))
                     )
                 } else {
                     ProgressView().frame(maxHeight: .infinity)

@@ -23,7 +23,7 @@ final class Train: ObservableObject {
     func start() async {
         stop()
         error = ""
-        guard await AVAudioApplication.requestRecordPermission() else { error = "Нет доступа к микрофону"; return }
+        guard await withCheckedContinuation({ c in AVAudioSession.sharedInstance().requestRecordPermission { c.resume(returning: $0) } }) else { error = "Нет доступа к микрофону"; return }
         if iv == "phone", let t = try? await Net.phoneToken() { prepareBroadcast(t) }
         var c = URLComponents(url: Net.base.appendingPathComponent("ws/app"), resolvingAgainstBaseURL: false)!
         c.scheme = c.scheme == "http" ? "ws" : "wss"
