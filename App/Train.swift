@@ -24,7 +24,7 @@ final class Train: ObservableObject {
         stop()
         error = ""
         guard await withCheckedContinuation({ c in AVAudioSession.sharedInstance().requestRecordPermission { c.resume(returning: $0) } }) else { error = "Нет доступа к микрофону"; return }
-        if iv == "phone", let t = try? await Net.phoneToken() { prepareBroadcast(t) }
+        if iv == "phone" { prepareBroadcast() }
         var c = URLComponents(url: Net.base.appendingPathComponent("ws/app"), resolvingAgainstBaseURL: false)!
         c.scheme = c.scheme == "http" ? "ws" : "wss"
         c.queryItems = [URLQueryItem(name: "iv", value: iv)]
@@ -103,13 +103,8 @@ final class Train: ObservableObject {
         }
     }
 
-    // Источник «Телефон»: адрес и ключ — расширению, потом системное окно трансляции.
-    private func prepareBroadcast(_ token: String) {
-        var c = URLComponents(url: Net.base.appendingPathComponent("ws/phone"), resolvingAgainstBaseURL: false)!
-        c.scheme = c.scheme == "http" ? "ws" : "wss"
-        let ud = UserDefaults(suiteName: group)
-        ud?.set(c.url?.absoluteString, forKey: "url")
-        ud?.set(token, forKey: "token")
+    // Источник «Телефон»: системное окно трансляции; адрес расширение берёт из своего Info.plist.
+    private func prepareBroadcast() {
         picker.preferredExtension = (Bundle.main.bundleIdentifier ?? "") + ".Broadcast"
         picker.subviews.compactMap { $0 as? UIButton }.first?.sendActions(for: .allTouchEvents)
     }

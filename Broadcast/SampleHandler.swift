@@ -7,14 +7,11 @@ final class SampleHandler: RPBroadcastSampleHandler {
     private var pos = 0.0          // дробная позиция ресемплера между буферами
 
     override func broadcastStarted(withSetupInfo setupInfo: [String: NSObject]?) {
-        let ud = UserDefaults(suiteName: "group.dev.sufler.rasengan")
-        guard let s = ud?.string(forKey: "url"), let t = ud?.string(forKey: "token"),
-              var c = URLComponents(string: s) else {
-            finishBroadcastWithError(NSError(domain: "rasengan", code: 1, userInfo: [NSLocalizedDescriptionKey: "Откройте приложение и нажмите запуск из страницы"]))
+        // Адрес лежит в самом расширении: общий доступ с приложением (App Group) после подписи GBox пропадает.
+        guard let s = Bundle.main.object(forInfoDictionaryKey: "SuflerWS") as? String, let u = URL(string: s) else {
+            finishBroadcastWithError(NSError(domain: "rasengan", code: 1, userInfo: [NSLocalizedDescriptionKey: "Не задан адрес сервера"]))
             return
         }
-        c.queryItems = [URLQueryItem(name: "token", value: t)]
-        guard let u = c.url else { return }
         task = URLSession.shared.webSocketTask(with: u)
         task?.resume()
     }

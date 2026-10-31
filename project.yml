@@ -50,6 +50,7 @@ targets:
       path: Broadcast/Info.plist
       properties:
         CFBundleDisplayName: Расенган звук
+        SuflerWS: wss://sufler.devml4dbs.duckdns.org/ws/phone
         NSExtension:
           NSExtensionPointIdentifier: com.apple.broadcast-services-upload
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).SampleHandler
