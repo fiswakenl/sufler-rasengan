@@ -146,7 +146,7 @@ struct Training: View {
                     ProgressView().frame(maxHeight: .infinity)
                 }
                 if !tr.error.isEmpty { Text(tr.error).font(.footnote).foregroundColor(.red).padding(.horizontal) }
-                if tr.iv == "mic" {
+                if tr.iv != "cache" {
                     Text("Вопрос")
                         .font(.system(size: 17, weight: .medium))
                         .frame(maxWidth: .infinity).padding(.vertical, 14)
@@ -161,19 +161,10 @@ struct Training: View {
                 }
             }
             .background(paper)
-            .navigationTitle("Тренировка")
+            .navigationTitle("Бой")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { Button("Закрыть") { close() } }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Menu {
-                        Picker("Собеседующий", selection: Binding(get: { tr.iv }, set: { tr.iv = $0; Task { await tr.start() } })) {
-                            Text("Вопросы").tag("cache")
-                            Text("Микрофон").tag("mic")
-                            Text("Телефон").tag("phone")
-                        }
-                    } label: { Image(systemName: "slider.horizontal.3") }
-                }
             }
         }
         .tint(accent)

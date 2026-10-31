@@ -8,7 +8,7 @@ import SwiftUI
 final class Train: ObservableObject {
     @Published var card: Data?
     @Published var rev = 0
-    @Published var iv = "cache"          // источник собеседующего: cache (озвученные вопросы) | mic (рация) | phone (звук звонка)
+    @Published var iv = "phone"          // источник собеседующего: phone (звук звонка, основной) | mic | cache — остальные пока скрыты из меню
     @Published var live = false
     @Published var error = ""
 
@@ -96,7 +96,7 @@ final class Train: ObservableObject {
 
     private func push(_ d: Data) {
         pcm.append(d)
-        let flag: UInt8 = (iv == "mic" && talking) ? 1 : 0
+        let flag: UInt8 = (iv != "cache" && talking) ? 1 : 0
         while pcm.count >= 3200 {
             task?.send(.data(Data([flag]) + pcm.prefix(3200))) { _ in }
             pcm.removeFirst(3200)
