@@ -11,6 +11,7 @@ struct Root: View {
     @State private var web = false
     @State private var train = false
     @StateObject private var tr = Train()
+    @AppStorage("iv") private var iv = "phone"   // источник звука, выбирается в меню «…» до старта
     @State private var user = Keys.load("user") ?? ""
     @State private var pass = Keys.load("pass") ?? ""
     @State private var error = ""
@@ -50,8 +51,7 @@ struct Root: View {
                             switch act {
                             case "web": web = true
                             case "train":
-                                // источник звука выбран на главном экране и приходит в ссылке: rasengan://train?iv=phone|mic|cache
-                                tr.iv = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "iv" }?.value ?? "phone"
+                                tr.iv = iv
                                 train = true; Task { await tr.start() }
                             case "refresh": Task { await enter() }
                             default: break
@@ -67,6 +67,11 @@ struct Root: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Menu {
+                        Picker("Звук", selection: $iv) {
+                            Text("Телефон").tag("phone")
+                            Text("Микрофон").tag("mic")
+                            Text("Вопросы").tag("cache")
+                        }
                         Button { Task { await enter() } } label: { Label("Обновить экран", systemImage: "arrow.clockwise") }
                         Button(role: .destructive) { signOut() } label: { Label("Выйти", systemImage: "rectangle.portrait.and.arrow.right") }
                     } label: { Image(systemName: "ellipsis.circle") }
