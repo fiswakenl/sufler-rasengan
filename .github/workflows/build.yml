@@ -16,7 +16,7 @@ jobs:
       - name: Сборка без подписи (подпишет GBox)
         run: |
           xcodebuild -project Rasengan.xcodeproj -scheme Rasengan -configuration Release -sdk iphoneos \
-            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CURRENT_PROJECT_VERSION=${{ github.run_number }} build
+            -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CURRENT_PROJECT_VERSION=${{ github.run_number }} build > build.log 2>&1 || { grep -E 'error:' build.log | sort -u | head -30; exit 1; }
           mkdir Payload && cp -R build/Build/Products/Release-iphoneos/Rasengan.app Payload/
           chmod -R 0755 Payload/Rasengan.app
           # как Feather: подпись «-» (ad-hoc) с правами, сначала расширение, потом приложение; GBox потом переподпишет своим сертификатом
