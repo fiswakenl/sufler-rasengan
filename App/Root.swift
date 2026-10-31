@@ -9,6 +9,8 @@ struct Root: View {
     @State private var phase: Phase = .start
     @State private var screen: Data?
     @State private var web = false
+    @State private var train = false
+    @StateObject private var tr = Train()
     @State private var user = Keys.load("user") ?? ""
     @State private var pass = Keys.load("pass") ?? ""
     @State private var error = ""
@@ -26,6 +28,7 @@ struct Root: View {
         }
         .tint(accent)
         .preferredColorScheme(.light)
+        .fullScreenCover(isPresented: $train, onDismiss: { tr.stop() }) { Training(tr: tr, close: { train = false }) }
         .fullScreenCover(isPresented: $web) {
             NavigationStack {
                 Web()
@@ -46,6 +49,7 @@ struct Root: View {
                         divkitComponents: DivKitComponents(urlHandler: Actions { act in
                             switch act {
                             case "web": web = true
+                            case "train": train = true; Task { await tr.start() }
                             case "refresh": Task { await enter() }
                             default: break
                             }
@@ -117,7 +121,61 @@ final class Actions: DivUrlHandler {
         guard url.scheme == "rasengan", let h = url.host else { return }
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            self.run(h)
+            self.run(h == "act" ? "act:" + url.lastPathComponent : h)
         }
+    }
+}
+
+// Тренировка: экран приходит с сервера, у нас — рамка, выбор источника собеседующего и кнопка-рация.
+struct Training: View {
+    @ObservedObject var tr: Train
+    let close: () -> Void
+    @State private var held = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                if let d = tr.card {
+                    DivHostingView(
+                        divkitComponents: DivKitComponents(urlHandler: Actions { act in
+                            if act.hasPrefix("act:") { tr.act(String(act.dropFirst(4))) }
+                        }),
+                        source: DivViewSource(kind: .data(d), cardId: "train\(tr.rev)")
+                    )
+                } else {
+                    ProgressView().frame(maxHeight: .infinity)
+                }
+                if !tr.error.isEmpty { Text(tr.error).font(.footnote).foregroundColor(.red).padding(.horizontal) }
+                if tr.iv == "mic" {
+                    Text("Вопрос")
+                        .font(.system(size: 17, weight: .medium))
+                        .frame(maxWidth: .infinity).padding(.vertical, 14)
+                        .background(held ? accent : Color.clear)
+                        .foregroundColor(held ? .white : .primary)
+                        .overlay(Capsule().stroke(held ? accent : Color.primary, lineWidth: 1))
+                        .clipShape(Capsule())
+                        .padding(.horizontal, 16).padding(.bottom, 12)
+                        .gesture(DragGesture(minimumDistance: 0)
+                            .onChanged { _ in if !held { held = true; tr.talk(true); UIImpactFeedbackGenerator(style: .light).impactOccurred() } }
+                            .onEnded { _ in held = false; tr.talk(false) })
+                }
+            }
+            .background(paper)
+            .navigationTitle("Тренировка")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) { Button("Закрыть") { close() } }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Menu {
+                        Picker("Собеседующий", selection: Binding(get: { tr.iv }, set: { tr.iv = $0; Task { await tr.start() } })) {
+                            Text("Вопросы").tag("cache")
+                            Text("Микрофон").tag("mic")
+                            Text("Телефон").tag("phone")
+                        }
+                    } label: { Image(systemName: "slider.horizontal.3") }
+                }
+            }
+        }
+        .tint(accent)
     }
 }
