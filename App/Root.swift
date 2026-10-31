@@ -46,10 +46,13 @@ struct Root: View {
             Group {
                 if let d = screen {
                     DivHostingView(
-                        divkitComponents: DivKitComponents(urlHandler: Actions { act in
+                        divkitComponents: DivKitComponents(urlHandler: Actions { act, url in
                             switch act {
                             case "web": web = true
-                            case "train": train = true; Task { await tr.start() }
+                            case "train":
+                                // источник звука выбран на главном экране и приходит в ссылке: rasengan://train?iv=phone|mic|cache
+                                tr.iv = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems?.first { $0.name == "iv" }?.value ?? "phone"
+                                train = true; Task { await tr.start() }
                             case "refresh": Task { await enter() }
                             default: break
                             }
@@ -114,14 +117,14 @@ struct Root: View {
 }
 
 final class Actions: DivUrlHandler {
-    let run: (String) -> Void
-    init(_ run: @escaping (String) -> Void) { self.run = run }
+    let run: (String, URL) -> Void
+    init(_ run: @escaping (String, URL) -> Void) { self.run = run }
 
     func handle(_ url: URL, info _: DivActionInfo, sender _: AnyObject?) {
         guard url.scheme == "rasengan", let h = url.host else { return }
         DispatchQueue.main.async {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            self.run(h == "act" ? "act:" + url.lastPathComponent : h)
+            self.run(h == "act" ? "act:" + url.lastPathComponent : h, url)
         }
     }
 }
@@ -137,7 +140,7 @@ struct Training: View {
             VStack(spacing: 0) {
                 if let d = tr.card {
                     DivHostingView(
-                        divkitComponents: DivKitComponents(urlHandler: Actions { act in
+                        divkitComponents: DivKitComponents(urlHandler: Actions { act, _ in
                             if act.hasPrefix("act:") { tr.act(String(act.dropFirst(4))) }
                         }),
                         source: DivViewSource(kind: .data(d), cardId: DivCardID(rawValue: "train\(tr.rev)"))
